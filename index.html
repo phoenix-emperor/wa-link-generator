@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>WhatsApp Link Generator</title>
+    <link rel="stylesheet" href="/styles.css" />
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/public/manifest.json" />
+    <!-- Favicon Links -->
+    <link rel="icon" type="image/x-icon" href="/public/favicon.ico" />
+    <link
+      rel="apple-touch-icon"
+      sizes="180x180"
+      href="/public/apple-touch-icon.ico"
+    />
+    <link
+      rel="icon"
+      type="image/x-icon"
+      sizes="192x192"
+      href="/public/android-chrome-192x192.ico"
+    />
+    <link
+      rel="icon"
+      type="image/x-icon"
+      sizes="512x512"
+      href="/public/android-chrome-512x512.ico"
+    />
+    <!-- Theme Color for PWA -->
+    <meta name="theme-color" content="#25D366" />
+  </head>
+  <body>
+    <div class="container">
+      <h1>WhatsApp Link Generator</h1>
+
+      <!-- Phone Number Input -->
+      <div class="form-group">
+        <label for="phone">Phone Number:</label>
+        <input
+          type="text"
+          id="phone"
+          placeholder="e.g. 2348123456789"
+          required
+        />
+      </div>
+
+      <!-- Optional Message -->
+      <div class="form-group">
+        <label for="message">Preset Message (optional):</label>
+        <textarea
+          id="message"
+          rows="3"
+          placeholder="Enter your message here..."
+        ></textarea>
+      </div>
+
+      <div class="buttons">
+        <!-- Generate Button -->
+        <div class="form-group">
+          <button id="generate-btn">Generate</button>
+        </div>
+
+        <!-- URL Shortener -->
+        <div class="form-group button">
+          <button id="shorten-url">Shorten URL</button>
+        </div>
+
+        <!-- QR Code Option -->
+        <div class="form-group button">
+          <button>
+            <a href="https://regal-qr-code.vercel.app/" target="_blank"
+              >QR Code Generator</a
+            >
+          </button>
+        </div>
+      </div>
+
+      <p class="copy-warning">
+        Ensure you <strong>generate</strong> and <strong>copy</strong> the link
+        before clicking on the QR Code Generator.
+      </p>
+
+      <!-- Output Section -->
+      <div id="output" style="display: none">
+        <p><strong>Generated Link:</strong></p>
+        <input type="text" id="walink" readonly />
+        <button id="copy-btn">Copy</button>
+      </div>
+
+      <!-- QR Section -->
+      <div id="qr-section" style="display: none">
+        <h3>Your QR Code:</h3>
+        <div id="qr-container"></div>
+        <a id="qr-download" href="#" download="walink-qr.png"
+          >Download QR Code</a
+        >
+      </div>
+
+      <!-- Display Copy Success Message -->
+      <div id="copy-success">
+        <p>Link copied to clipboard!</p>
+      </div>
+    </div>
+
+    <script src="/app.js"></script>
+    <!-- Register Service Worker -->
+    <script>
+      if ("serviceWorker" in navigator) {
+        window.addEventListener("load", () => {
+          navigator.serviceWorker
+            .register("/public/sw.js", { scope: "/" })
+            .then((registration) => {
+              console.log(
+                "Service Worker registered with scope:",
+                registration.scope
+              );
+            })
+            .catch((error) => {
+              console.error("Service Worker registration failed:", error);
+            });
+        });
+      }
+    </script>
+  </body>
+</html>
