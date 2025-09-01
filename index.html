@@ -3,31 +3,28 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>WhatsApp Link Generator</title>
-    <link rel="stylesheet" href="/styles.css" />
-    <!-- PWA Manifest -->
-    <link rel="manifest" href="/public/manifest.json" />
-    <!-- Favicon Links -->
-    <link rel="icon" type="image/x-icon" href="/public/favicon.ico" />
+    <title>WhatsApp WALink Generator</title>
+    <!-- Favicons -->
     <link
       rel="apple-touch-icon"
       sizes="180x180"
-      href="/public/apple-touch-icon.ico"
+      href="/favicon/apple-touch-icon.png"
     />
     <link
       rel="icon"
-      type="image/x-icon"
-      sizes="192x192"
-      href="/public/android-chrome-192x192.ico"
+      type="image/png"
+      sizes="32x32"
+      href="/favicon/favicon-32x32.png"
     />
     <link
       rel="icon"
-      type="image/x-icon"
-      sizes="512x512"
-      href="/public/android-chrome-512x512.ico"
+      type="image/png"
+      sizes="16x16"
+      href="/favicon/favicon-16x16.png"
     />
-    <!-- Theme Color for PWA -->
-    <meta name="theme-color" content="#25D366" />
+    <link rel="manifest" href="/favicon/site.webmanifest" />
+    <!-- CSS Style -->
+    <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
     <div class="container">
@@ -87,7 +84,7 @@
         <button id="copy-btn">Copy</button>
       </div>
 
-      <!-- QR Section -->
+      <!-- QR Section (conditionally shown if we later embed QR directly) -->
       <div id="qr-section" style="display: none">
         <h3>Your QR Code:</h3>
         <div id="qr-container"></div>
@@ -102,24 +99,6 @@
       </div>
     </div>
 
-    <script src="/app.js"></script>
-    <!-- Register Service Worker -->
-    <script>
-      if ("serviceWorker" in navigator) {
-        window.addEventListener("load", () => {
-          navigator.serviceWorker
-            .register("/public/sw.js", { scope: "/" })
-            .then((registration) => {
-              console.log(
-                "Service Worker registered with scope:",
-                registration.scope
-              );
-            })
-            .catch((error) => {
-              console.error("Service Worker registration failed:", error);
-            });
-        });
-      }
-    </script>
+    <script src="app.js"></script>
   </body>
 </html>

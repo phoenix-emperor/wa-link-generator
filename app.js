@@ -23,7 +23,7 @@ copyBtn.addEventListener("click", async () => {
     await navigator.clipboard.writeText(
       document.getElementById("walink").value
     );
-    copySuccess.style.display = "block";
+    copySuccess.style.display = "block"; // Show success
   } catch (err) {
     alert("Copy failed: " + err.message);
   }
@@ -31,25 +31,14 @@ copyBtn.addEventListener("click", async () => {
 
 shortenBtn.addEventListener("click", async () => {
   const longUrl = document.getElementById("walink").value;
-  shortenBtn.disabled = true;
-  shortenBtn.textContent = "Shortening...";
 
   if (!longUrl) {
     alert("No WhatsApp link to shorten. Please generate a link first.");
-    shortenBtn.disabled = false;
-    shortenBtn.textContent = "Shorten URL";
     return;
   }
 
-  // Use relative URL for prod, absolute for local dev
-  const apiUrl =
-    window.location.hostname === "localhost" ||
-    window.location.hostname === "127.0.0.1"
-      ? "http://localhost:3000/shorten-url"
-      : "/api/shorten-url"; // Use '/netlify/functions/shorten-url' for Netlify
-
   try {
-    const response = await fetch(apiUrl, {
+    const response = await fetch("/shorten-url", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -63,11 +52,9 @@ shortenBtn.addEventListener("click", async () => {
       throw new Error(data.error || "Failed to shorten URL");
     }
 
+    // Update the input with the short URL
     document.getElementById("walink").value = data.shortUrl;
   } catch (error) {
     alert("Error shortening URL: " + error.message);
-  } finally {
-    shortenBtn.disabled = false;
-    shortenBtn.textContent = "Shorten URL";
   }
 });

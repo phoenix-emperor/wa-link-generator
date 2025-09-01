@@ -1,16 +1,17 @@
 const express = require("express");
+const fetch = require("node-fetch"); // Use node-fetch@2.6.0
 const cors = require("cors");
-// Use node-fetch v2 CommonJS or v3 CommonJS fallback
-const fetch = require("node-fetch").default || require("node-fetch");
-
 const app = express();
-const port = 3000;
 
 // Middleware
 app.use(express.json());
 app.use(
   cors({
-    origin: ["http://127.0.0.1:5500", "http://localhost:5500"], // Allow both origins
+    origin: [
+      "http://localhost:5500",
+      "http://127.0.0.1:5500",
+      "https://*.vercel.app",
+    ], // Allow Vercel domains
   })
 );
 
@@ -30,7 +31,7 @@ app.post("/shorten-url", async (req, res) => {
   try {
     // Encode the long URL for safe API request
     const encodedUrl = encodeURIComponent(longUrl);
-    const tinyUrlApi = `.https://tinyurl.com/api-create.php?url=${encodedUrl}`;
+    const tinyUrlApi = `https://tinyurl.com/api-create.php?url=${encodedUrl}`;
 
     // Log the API URL for debugging
     console.log("Calling TinyURL API:", tinyUrlApi);
@@ -66,7 +67,5 @@ app.post("/shorten-url", async (req, res) => {
   }
 });
 
-// Start the server
-app.listen(port, () => {
-  console.log(`Server running at http://localhost:${port}`);
-});
+// Export for Vercel
+module.exports = app;

@@ -1,68 +1,76 @@
-const fetch = require("node-fetch").default || require("node-fetch");
+const fetch = require("node-fetch");
 
-// Dynamic allowed origins from environment variable (comma-separated, e.g., 'https://your-app.vercel.app,http://localhost:5500')
-const allowedOrigins = process.env.ALLOWED_ORIGINS
-  ? process.env.ALLOWED_ORIGINS.split(",")
-  : ["*"]; // Default to '*' for dev (secure in prod)
+exports.handler = async function (event, context) {
+  const allowedOrigins = process.env.ALLOWED_ORIGINS
+    ? process.env.ALLOWED_ORIGINS.split(",")
+    : [
+        "http://localhost:5500",
+        "http://127.0.0.1:5500",
+        "http://localhost:3000",
+      ];
 
-module.exports = async (req, res) => {
-  // Handle CORS dynamically
-  const origin = req.headers.origin;
-  if (allowedOrigins.includes("*") || allowedOrigins.includes(origin)) {
-    res.setHeader("Access-Control-Allow-Origin", origin || "*");
-  } else {
-    return res.status(403).json({ error: "Not allowed by CORS" });
+  const origin = event.headers.origin || event.headers.Origin;
+  const headers = {
+    "Access-Control-Allow-Origin": allowedOrigins.includes(origin)
+      ? origin
+      : allowedOrigins[0],
+    "Access-Control-Allow-Methods": "POST, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type",
+  };
+
+  if (event.httpMethod === "OPTIONS") {
+    return {
+      statusCode: 200,
+      headers,
+      body: "",
+    };
   }
-  res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
 
-  // Handle preflight OPTIONS request
-  if (req.method === "OPTIONS") {
-    return res.status(200).end();
-  }
-
-  // Only allow POST
-  if (req.method !== "POST") {
-    return res.status(405).json({ error: "Method not allowed" });
-  }
-
-  const { longUrl } = req.body;
-
-  // Log for debugging (Vercel logs these)
-  console.log("Received longUrl:", longUrl);
-
-  // Validate input
-  if (!longUrl || !longUrl.startsWith("https://wa.me/")) {
-    console.error("Validation failed: Invalid or missing WhatsApp URL");
-    return res.status(400).json({ error: "Invalid or missing WhatsApp URL" });
+  if (event.httpMethod !== "POST") {
+    return {
+      statusCode: 405,
+      headers,
+      body: JSON.stringify({ error: "Method not allowed" }),
+    };
   }
 
   try {
-    const encodedUrl = encodeURIComponent(longUrl);
-    const tinyUrlApi = `https://tinyurl.com/api-create.php?url=${encodedUrl}`;
-
-    console.log("Calling TinyURL API:", tinyUrlApi);
-
-    const response = await fetch(tinyUrlApi);
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error("TinyURL API error:", response.status, errorText);
-      throw new Error(
-        `TinyURL API request failed: ${response.status} ${errorText}`
-      );
+    const { longUrl } = JSON.parse(event.body);
+    if (!longUrl) {
+      return {
+        statusCode: 400,
+        headers,
+        body: JSON.stringify({ error: "Missing longUrl" }),
+      };
     }
 
-    const shortUrl = await response.text();
-    console.log("TinyURL response:", shortUrl);
+    const tinyUrlResponse = await fetch("https://api.tinyurl.com/create", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${process.env.TINYURL_API_TOKEN}`,
+      },
+      body: JSON.stringify({
+        url: longUrl,
+      }),
+    });
 
-    if (!shortUrl.startsWith("https://tinyurl.com/")) {
-      console.error("Invalid TinyURL response:", shortUrl);
-      throw new Error("Invalid TinyURL response");
+    const tinyUrlData = await tinyUrlResponse.json();
+
+    if (!tinyUrlResponse.ok) {
+      throw new Error(tinyUrlData.error || "Failed to shorten URL");
     }
 
-    res.json({ shortUrl });
+    return {
+      statusCode: 200,
+      headers,
+      body: JSON.stringify({ shortUrl: tinyUrlData.data.tiny_url }),
+    };
   } catch (error) {
-    console.error("Error shortening URL:", error.message);
-    res.status(500).json({ error: `Failed to shorten URL: ${error.message}` });
+    return {
+      statusCode: 500,
+      headers,
+      body: JSON.stringify({ error: error.message }),
+    };
   }
 };
